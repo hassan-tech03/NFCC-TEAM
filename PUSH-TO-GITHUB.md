@@ -27,6 +27,7 @@ git push -u origin main
 ## ⚠️ If You Get an Error
 
 ### Error: "remote origin already exists"
+
 ```bash
 # Remove the old remote
 git remote remove origin
@@ -39,26 +40,31 @@ git push -u origin main
 ```
 
 ### Error: "Updates were rejected"
+
 ```bash
 # Force push (only if you're sure)
 git push -u origin main --force
 ```
 
 ### Error: "Authentication failed"
+
 You need to authenticate with GitHub. Use one of these:
 
 **Option 1: GitHub CLI (Recommended)**
+
 ```bash
 gh auth login
 ```
 
 **Option 2: Personal Access Token**
+
 1. Go to https://github.com/settings/tokens
 2. Generate new token (classic)
 3. Select "repo" scope
 4. Use token as password when pushing
 
 **Option 3: SSH Key**
+
 ```bash
 # Generate SSH key
 ssh-keygen -t ed25519 -C "your_email@example.com"
