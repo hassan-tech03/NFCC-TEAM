@@ -7,6 +7,10 @@ import {
   getRecentMatches,
 } from '@/lib/supabase.queries'
 
+// Force dynamic rendering to prevent caching issues
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 async function getHomeData() {
   const [settings, stats, featuredPlayers, nextMatch, recentMatches] = await Promise.all([
     getSettings(),
