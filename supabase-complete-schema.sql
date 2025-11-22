@@ -146,6 +146,8 @@ CREATE TABLE IF NOT EXISTS player_season_stats (
   is_hundred BOOLEAN DEFAULT FALSE,
   not_out BOOLEAN DEFAULT FALSE,
   wickets INTEGER DEFAULT 0,
+  is_five_wicket BOOLEAN DEFAULT FALSE,
+  is_ten_wicket BOOLEAN DEFAULT FALSE,
   overs_bowled NUMERIC(4,1) DEFAULT 0,
   runs_conceded INTEGER DEFAULT 0,
   catches INTEGER DEFAULT 0,

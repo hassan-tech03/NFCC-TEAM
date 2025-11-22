@@ -1,203 +1,230 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase.client'
-import { isAdmin } from '@/lib/supabase.auth'
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase.client";
+import { isAdmin } from "@/lib/supabase.auth";
 
 interface Player {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface Season {
-  id: string
-  name: string
-  start_date: string
-  end_date: string | null
-  is_current: boolean
+  id: string;
+  name: string;
+  start_date: string;
+  end_date: string | null;
+  is_current: boolean;
 }
 
 interface PlayerStat {
-  id: string
-  player_id: string
-  match_number: number
-  match_date?: string
-  opponent?: string
-  runs: number
-  balls_played: number
-  is_fifty: boolean
-  is_hundred: boolean
-  not_out: boolean
-  wickets: number
-  overs_bowled: number
-  runs_conceded: number
-  catches: number
-  runouts: number
-  stumpings: number
-  catches_dropped: number
-  stumpings_missed: number
+  id: string;
+  player_id: string;
+  match_number: number;
+  match_date?: string;
+  opponent?: string;
+  runs: number;
+  balls_played: number;
+  is_fifty: boolean;
+  is_hundred: boolean;
+  not_out: boolean;
+  wickets: number;
+  is_five_wicket: boolean;
+  is_ten_wicket: boolean;
+  overs_bowled: number;
+  runs_conceded: number;
+  catches: number;
+  runouts: number;
+  stumpings: number;
+  catches_dropped: number;
+  stumpings_missed: number;
 }
 
 export default function SeasonStatsPage() {
-  const [players, setPlayers] = useState<Player[]>([])
-  const [seasons, setSeasons] = useState<Season[]>([])
-  const [selectedSeason, setSelectedSeason] = useState<string>('')
-  const [selectedPlayer, setSelectedPlayer] = useState<string>('')
-  const [stats, setStats] = useState<PlayerStat[]>([])
-  const [loading, setLoading] = useState(true)
-  const [isAdminUser, setIsAdminUser] = useState(false)
-  const [editingCell, setEditingCell] = useState<{ statId: string; field: string } | null>(null)
-  const [showSeasonModal, setShowSeasonModal] = useState(false)
-  const [deleteStatConfirm, setDeleteStatConfirm] = useState<{ show: boolean; statId: string; matchNumber: number }>({
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [selectedSeason, setSelectedSeason] = useState<string>("");
+  const [selectedPlayer, setSelectedPlayer] = useState<string>("");
+  const [stats, setStats] = useState<PlayerStat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [editingCell, setEditingCell] = useState<{
+    statId: string;
+    field: string;
+  } | null>(null);
+  const [showSeasonModal, setShowSeasonModal] = useState(false);
+  const [deleteStatConfirm, setDeleteStatConfirm] = useState<{
+    show: boolean;
+    statId: string;
+    matchNumber: number;
+  }>({
     show: false,
-    statId: '',
-    matchNumber: 0
-  })
-  const [deletingStat, setDeletingStat] = useState(false)
+    statId: "",
+    matchNumber: 0,
+  });
+  const [deletingStat, setDeletingStat] = useState(false);
 
   useEffect(() => {
-    loadInitialData()
-    checkAdmin()
-  }, [])
+    loadInitialData();
+    checkAdmin();
+  }, []);
 
   useEffect(() => {
     if (selectedSeason && selectedPlayer) {
-      loadPlayerStats()
+      loadPlayerStats();
     }
-  }, [selectedSeason, selectedPlayer])
+  }, [selectedSeason, selectedPlayer]);
 
   async function loadInitialData() {
     if (!supabase) {
-      setLoading(false)
-      return
+      setLoading(false);
+      return;
     }
 
     const [playersRes, seasonsRes] = await Promise.all([
-      supabase.from('players').select('id, name').order('name'),
-      supabase.from('seasons').select('*').order('name', { ascending: false })
-    ])
+      supabase.from("players").select("id, name").order("name"),
+      supabase.from("seasons").select("*").order("name", { ascending: false }),
+    ]);
 
-    if (playersRes.data) setPlayers(playersRes.data)
+    if (playersRes.data) setPlayers(playersRes.data);
     if (seasonsRes.error) {
-      console.error('Error loading seasons:', seasonsRes.error)
-      alert('Error loading seasons. Please make sure you have run the season stats schema in Supabase.')
+      console.error("Error loading seasons:", seasonsRes.error);
+      alert(
+        "Error loading seasons. Please make sure you have run the season stats schema in Supabase."
+      );
     }
     if (seasonsRes.data) {
-      setSeasons(seasonsRes.data)
-      const current = seasonsRes.data.find(s => s.is_current)
-      if (current) setSelectedSeason(current.id)
+      setSeasons(seasonsRes.data);
+      const current = seasonsRes.data.find((s) => s.is_current);
+      if (current) setSelectedSeason(current.id);
     }
 
-    setLoading(false)
+    setLoading(false);
   }
 
   async function checkAdmin() {
-    const admin = await isAdmin()
-    setIsAdminUser(admin)
+    const admin = await isAdmin();
+    setIsAdminUser(admin);
   }
 
   async function loadPlayerStats() {
-    if (!supabase || !selectedSeason || !selectedPlayer) return
+    if (!supabase || !selectedSeason || !selectedPlayer) return;
 
     const { data } = await supabase
-      .from('player_season_stats')
-      .select('*')
-      .eq('season_id', selectedSeason)
-      .eq('player_id', selectedPlayer)
-      .order('match_number')
+      .from("player_season_stats")
+      .select("*")
+      .eq("season_id", selectedSeason)
+      .eq("player_id", selectedPlayer)
+      .order("match_number");
 
-    setStats(data || [])
+    setStats(data || []);
   }
 
   async function addMatch() {
-    if (!supabase || !selectedSeason || !selectedPlayer) return
+    if (!supabase || !selectedSeason || !selectedPlayer) return;
 
-    const nextMatchNumber = stats.length > 0 ? Math.max(...stats.map(s => s.match_number)) + 1 : 1
+    const nextMatchNumber =
+      stats.length > 0 ? Math.max(...stats.map((s) => s.match_number)) + 1 : 1;
 
     const { data, error } = await supabase
-      .from('player_season_stats')
-      .insert([{
-        season_id: selectedSeason,
-        player_id: selectedPlayer,
-        match_number: nextMatchNumber,
-        runs: 0,
-        balls_played: 0,
-        is_fifty: false,
-        is_hundred: false,
-        not_out: false,
-        wickets: 0,
-        overs_bowled: 0,
-        runs_conceded: 0,
-        catches: 0,
-        runouts: 0,
-        stumpings: 0,
-        catches_dropped: 0,
-        stumpings_missed: 0
-      }])
-      .select()
+      .from("player_season_stats")
+      .insert([
+        {
+          season_id: selectedSeason,
+          player_id: selectedPlayer,
+          match_number: nextMatchNumber,
+          runs: 0,
+          balls_played: 0,
+          is_fifty: false,
+          is_hundred: false,
+          not_out: false,
+          wickets: 0,
+          is_five_wicket: false,
+          is_ten_wicket: false,
+          overs_bowled: 0,
+          runs_conceded: 0,
+          catches: 0,
+          runouts: 0,
+          stumpings: 0,
+          catches_dropped: 0,
+          stumpings_missed: 0,
+        },
+      ])
+      .select();
 
     if (!error && data) {
-      loadPlayerStats()
+      loadPlayerStats();
     }
   }
 
   async function updateStat(statId: string, field: string, value: any) {
-    if (!supabase) return
+    if (!supabase) return;
 
-    const updateData: any = { [field]: value }
-    
+    const updateData: any = { [field]: value };
+
     // Auto-calculate fifty/hundred based on runs
-    if (field === 'runs') {
-      const runs = parseInt(value) || 0
-      updateData.is_hundred = runs >= 100
-      updateData.is_fifty = runs >= 50 && runs < 100
+    if (field === "runs") {
+      const runs = parseInt(value) || 0;
+      updateData.is_hundred = runs >= 100;
+      updateData.is_fifty = runs >= 50 && runs < 100;
+    }
+
+    // Auto-calculate 5wi/10wi based on wickets
+    if (field === "wickets") {
+      const wickets = parseInt(value) || 0;
+      updateData.is_ten_wicket = wickets >= 10;
+      updateData.is_five_wicket = wickets >= 5 && wickets < 10;
     }
 
     const { error } = await supabase
-      .from('player_season_stats')
+      .from("player_season_stats")
       .update(updateData)
-      .eq('id', statId)
+      .eq("id", statId);
 
     if (!error) {
-      loadPlayerStats()
+      loadPlayerStats();
     }
   }
 
   function showDeleteStatConfirm(statId: string, matchNumber: number) {
-    setDeleteStatConfirm({ show: true, statId, matchNumber })
+    setDeleteStatConfirm({ show: true, statId, matchNumber });
   }
 
   async function deleteStat() {
-    if (!supabase) return
+    if (!supabase) return;
 
-    setDeletingStat(true)
+    setDeletingStat(true);
 
     const { error } = await supabase
-      .from('player_season_stats')
+      .from("player_season_stats")
       .delete()
-      .eq('id', deleteStatConfirm.statId)
+      .eq("id", deleteStatConfirm.statId);
 
-    setDeletingStat(false)
+    setDeletingStat(false);
 
     if (!error) {
-      setDeleteStatConfirm({ show: false, statId: '', matchNumber: 0 })
-      loadPlayerStats()
+      setDeleteStatConfirm({ show: false, statId: "", matchNumber: 0 });
+      loadPlayerStats();
     } else {
-      alert('Error deleting match record: ' + error.message)
+      alert("Error deleting match record: " + error.message);
     }
   }
 
-  const selectedPlayerName = players.find(p => p.id === selectedPlayer)?.name || ''
-  const selectedSeasonName = seasons.find(s => s.id === selectedSeason)?.name || ''
+  const selectedPlayerName =
+    players.find((p) => p.id === selectedPlayer)?.name || "";
+  const selectedSeasonName =
+    seasons.find((s) => s.id === selectedSeason)?.name || "";
 
   // Calculate totals
   const totals = {
     runs: stats.reduce((sum, s) => sum + s.runs, 0),
     ballsPlayed: stats.reduce((sum, s) => sum + s.balls_played, 0),
-    fifties: stats.filter(s => s.is_fifty).length,
-    hundreds: stats.filter(s => s.is_hundred).length,
-    notOuts: stats.filter(s => s.not_out).length,
+    fifties: stats.filter((s) => s.is_fifty).length,
+    hundreds: stats.filter((s) => s.is_hundred).length,
+    notOuts: stats.filter((s) => s.not_out).length,
     wickets: stats.reduce((sum, s) => sum + s.wickets, 0),
+    fiveWickets: stats.filter((s) => s.is_five_wicket).length,
+    tenWickets: stats.filter((s) => s.is_ten_wicket).length,
     oversBowled: stats.reduce((sum, s) => sum + s.overs_bowled, 0),
     runsConceded: stats.reduce((sum, s) => sum + s.runs_conceded, 0),
     catches: stats.reduce((sum, s) => sum + s.catches, 0),
@@ -205,14 +232,14 @@ export default function SeasonStatsPage() {
     stumpings: stats.reduce((sum, s) => sum + s.stumpings, 0),
     catchesDropped: stats.reduce((sum, s) => sum + s.catches_dropped, 0),
     stumpingsMissed: stats.reduce((sum, s) => sum + s.stumpings_missed, 0),
-  }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -222,7 +249,9 @@ export default function SeasonStatsPage() {
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
             Season Statistics
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-gray-600">Track player performance across matches</p>
+          <p className="text-sm sm:text-base md:text-lg text-gray-600">
+            Track player performance across matches
+          </p>
         </div>
 
         {/* Filters */}
@@ -230,14 +259,26 @@ export default function SeasonStatsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">Season</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Season
+                </label>
                 {isAdminUser && (
                   <button
                     onClick={() => setShowSeasonModal(true)}
                     className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
                     </svg>
                     Manage Seasons
                   </button>
@@ -249,23 +290,27 @@ export default function SeasonStatsPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="">Select Season</option>
-                {seasons.map(season => (
+                {seasons.map((season) => (
                   <option key={season.id} value={season.id}>
-                    {season.name} {season.is_current && '(Current)'}
+                    {season.name} {season.is_current && "(Current)"}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Player</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Player
+              </label>
               <select
                 value={selectedPlayer}
                 onChange={(e) => setSelectedPlayer(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="">Select Player</option>
-                {players.map(player => (
-                  <option key={player.id} value={player.id}>{player.name}</option>
+                {players.map((player) => (
+                  <option key={player.id} value={player.id}>
+                    {player.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -287,21 +332,43 @@ export default function SeasonStatsPage() {
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in">
               {/* Icon */}
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg
+                  className="w-8 h-8 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
                 </svg>
               </div>
 
               {/* Content */}
-              <h3 className="text-xl font-bold text-center mb-2">Delete Match Record?</h3>
+              <h3 className="text-xl font-bold text-center mb-2">
+                Delete Match Record?
+              </h3>
               <p className="text-gray-600 text-center mb-6">
-                Are you sure you want to delete <span className="font-semibold text-gray-900">Match {deleteStatConfirm.matchNumber}</span> record? This action cannot be undone.
+                Are you sure you want to delete{" "}
+                <span className="font-semibold text-gray-900">
+                  Match {deleteStatConfirm.matchNumber}
+                </span>{" "}
+                record? This action cannot be undone.
               </p>
 
               {/* Buttons */}
               <div className="flex gap-3">
                 <button
-                  onClick={() => setDeleteStatConfirm({ show: false, statId: '', matchNumber: 0 })}
+                  onClick={() =>
+                    setDeleteStatConfirm({
+                      show: false,
+                      statId: "",
+                      matchNumber: 0,
+                    })
+                  }
                   disabled={deletingStat}
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
@@ -318,7 +385,7 @@ export default function SeasonStatsPage() {
                       Deleting...
                     </>
                   ) : (
-                    'Delete'
+                    "Delete"
                   )}
                 </button>
               </div>
@@ -338,8 +405,18 @@ export default function SeasonStatsPage() {
                   onClick={addMatch}
                   className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
                   </svg>
                   Add Match
                 </button>
@@ -352,23 +429,65 @@ export default function SeasonStatsPage() {
                 <table className="w-full min-w-max table-auto">
                   <thead className="bg-gradient-to-r from-primary-600 to-primary-700 text-white">
                     <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold whitespace-nowrap">Match</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold whitespace-nowrap">Date</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold whitespace-nowrap min-w-[150px]">Opponent</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">Runs</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">Balls</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">50s</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">100s</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">N/O</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">Wkts</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">Overs</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">R.Con</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">Catches</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">R/O</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">Stump</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">C Drop</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">S Miss</th>
-                      {isAdminUser && <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">Action</th>}
+                      <th className="px-6 py-4 text-left text-sm font-semibold whitespace-nowrap">
+                        Match
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold whitespace-nowrap">
+                        Date
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold whitespace-nowrap min-w-[150px]">
+                        Opponent
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        Runs
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        Balls
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        50s
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        100s
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        N/O
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        Wkts
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        5wi
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        10wi
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        Overs
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        R.Con
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        Catches
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        R/O
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        Stump
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        C Drop
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                        S Miss
+                      </th>
+                      {isAdminUser && (
+                        <th className="px-6 py-4 text-center text-sm font-semibold whitespace-nowrap">
+                          Action
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -385,27 +504,64 @@ export default function SeasonStatsPage() {
                     ))}
                     {stats.length === 0 && (
                       <tr>
-                        <td colSpan={isAdminUser ? 17 : 16} className="px-4 py-8 text-center text-gray-500">
-                          No matches recorded yet. {isAdminUser && 'Click "Add Match" to start tracking.'}
+                        <td
+                          colSpan={isAdminUser ? 19 : 18}
+                          className="px-4 py-8 text-center text-gray-500"
+                        >
+                          No matches recorded yet.{" "}
+                          {isAdminUser &&
+                            'Click "Add Match" to start tracking.'}
                         </td>
                       </tr>
                     )}
                     {stats.length > 0 && (
                       <tr className="bg-gray-50 font-bold">
-                        <td className="px-6 py-4" colSpan={3}>TOTAL</td>
+                        <td className="px-6 py-4" colSpan={3}>
+                          TOTAL
+                        </td>
                         <td className="px-6 py-4 text-center">{totals.runs}</td>
-                        <td className="px-6 py-4 text-center">{totals.ballsPlayed}</td>
-                        <td className="px-6 py-4 text-center">{totals.fifties}</td>
-                        <td className="px-6 py-4 text-center">{totals.hundreds}</td>
-                        <td className="px-6 py-4 text-center">{totals.notOuts}</td>
-                        <td className="px-6 py-4 text-center">{totals.wickets}</td>
-                        <td className="px-6 py-4 text-center">{totals.oversBowled}</td>
-                        <td className="px-6 py-4 text-center">{totals.runsConceded}</td>
-                        <td className="px-6 py-4 text-center">{totals.catches}</td>
-                        <td className="px-6 py-4 text-center">{totals.runouts}</td>
-                        <td className="px-6 py-4 text-center">{totals.stumpings}</td>
-                        <td className="px-6 py-4 text-center">{totals.catchesDropped}</td>
-                        <td className="px-6 py-4 text-center">{totals.stumpingsMissed}</td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.ballsPlayed}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.fifties}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.hundreds}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.notOuts}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.wickets}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.fiveWickets}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.tenWickets}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.oversBowled}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.runsConceded}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.catches}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.runouts}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.stumpings}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.catchesDropped}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {totals.stumpingsMissed}
+                        </td>
                         {isAdminUser && <td></td>}
                       </tr>
                     )}
@@ -417,49 +573,71 @@ export default function SeasonStatsPage() {
         ) : (
           <div className="text-center py-20">
             <div className="text-6xl mb-4">📊</div>
-            <h2 className="text-2xl font-semibold text-gray-600 mb-2">Select Season and Player</h2>
-            <p className="text-gray-500">Choose a season and player to view their statistics</p>
+            <h2 className="text-2xl font-semibold text-gray-600 mb-2">
+              Select Season and Player
+            </h2>
+            <p className="text-gray-500">
+              Choose a season and player to view their statistics
+            </p>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
 
-function StatRow({ stat, isAdmin, onUpdate, onDelete, editingCell, setEditingCell }: {
-  stat: PlayerStat
-  isAdmin: boolean
-  onUpdate: (id: string, field: string, value: any) => void
-  onDelete: (id: string, matchNumber: number) => void
-  editingCell: { statId: string; field: string } | null
-  setEditingCell: (cell: { statId: string; field: string } | null) => void
+function StatRow({
+  stat,
+  isAdmin,
+  onUpdate,
+  onDelete,
+  editingCell,
+  setEditingCell,
+}: {
+  stat: PlayerStat;
+  isAdmin: boolean;
+  onUpdate: (id: string, field: string, value: any) => void;
+  onDelete: (id: string, matchNumber: number) => void;
+  editingCell: { statId: string; field: string } | null;
+  setEditingCell: (cell: { statId: string; field: string } | null) => void;
 }) {
-  const [tempValue, setTempValue] = useState<string>('')
+  const [tempValue, setTempValue] = useState<string>("");
 
   const handleCellClick = (field: string, currentValue: any) => {
-    if (!isAdmin) return
-    setEditingCell({ statId: stat.id, field })
-    setTempValue(currentValue?.toString() || '')
-  }
+    if (!isAdmin) return;
+    setEditingCell({ statId: stat.id, field });
+    setTempValue(currentValue?.toString() || "");
+  };
 
   const handleCellBlur = (field: string) => {
     if (editingCell?.statId === stat.id && editingCell?.field === field) {
-      onUpdate(stat.id, field, tempValue)
-      setEditingCell(null)
+      onUpdate(stat.id, field, tempValue);
+      setEditingCell(null);
     }
-  }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent, field: string) => {
-    if (e.key === 'Enter') {
-      handleCellBlur(field)
-    } else if (e.key === 'Escape') {
-      setEditingCell(null)
+    if (e.key === "Enter") {
+      handleCellBlur(field);
+    } else if (e.key === "Escape") {
+      setEditingCell(null);
     }
-  }
+  };
 
-  const isEditing = (field: string) => editingCell?.statId === stat.id && editingCell?.field === field
+  const isEditing = (field: string) =>
+    editingCell?.statId === stat.id && editingCell?.field === field;
 
-  const EditableCell = ({ field, value, type = 'text', className = '' }: { field: string; value: any; type?: string; className?: string }) => {
+  const EditableCell = ({
+    field,
+    value,
+    type = "text",
+    className = "",
+  }: {
+    field: string;
+    value: any;
+    type?: string;
+    className?: string;
+  }) => {
     if (isEditing(field)) {
       return (
         <input
@@ -471,19 +649,25 @@ function StatRow({ stat, isAdmin, onUpdate, onDelete, editingCell, setEditingCel
           autoFocus
           className={`w-full px-2 py-1 border border-primary-500 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 ${className}`}
         />
-      )
+      );
     }
     return (
       <div
         onClick={() => handleCellClick(field, value)}
         className={`cursor-pointer hover:bg-gray-100 px-2 py-1 rounded ${className}`}
       >
-        {value || '-'}
+        {value || "-"}
       </div>
-    )
-  }
+    );
+  };
 
-  const CheckboxCell = ({ field, checked }: { field: string; checked: boolean }) => (
+  const CheckboxCell = ({
+    field,
+    checked,
+  }: {
+    field: string;
+    checked: boolean;
+  }) => (
     <input
       type="checkbox"
       checked={checked}
@@ -491,26 +675,56 @@ function StatRow({ stat, isAdmin, onUpdate, onDelete, editingCell, setEditingCel
       disabled={!isAdmin}
       className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500 cursor-pointer disabled:cursor-not-allowed"
     />
-  )
+  );
 
   return (
     <tr className="hover:bg-gray-50">
-      <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{stat.match_number}</td>
+      <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+        {stat.match_number}
+      </td>
       <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">
         {isAdmin ? (
-          <EditableCell field="match_date" value={stat.match_date} type="date" />
+          <EditableCell
+            field="match_date"
+            value={stat.match_date}
+            type="date"
+          />
+        ) : stat.match_date ? (
+          new Date(stat.match_date).toLocaleDateString()
         ) : (
-          stat.match_date ? new Date(stat.match_date).toLocaleDateString() : '-'
+          "-"
         )}
       </td>
       <td className="px-6 py-4 text-sm text-gray-700 min-w-[150px]">
-        {isAdmin ? <EditableCell field="opponent" value={stat.opponent} /> : (stat.opponent || '-')}
+        {isAdmin ? (
+          <EditableCell field="opponent" value={stat.opponent} />
+        ) : (
+          stat.opponent || "-"
+        )}
       </td>
       <td className="px-6 py-4 text-center text-sm whitespace-nowrap">
-        {isAdmin ? <EditableCell field="runs" value={stat.runs} type="number" className="text-center" /> : stat.runs}
+        {isAdmin ? (
+          <EditableCell
+            field="runs"
+            value={stat.runs}
+            type="number"
+            className="text-center"
+          />
+        ) : (
+          stat.runs
+        )}
       </td>
       <td className="px-6 py-4 text-center text-sm whitespace-nowrap">
-        {isAdmin ? <EditableCell field="balls_played" value={stat.balls_played} type="number" className="text-center" /> : stat.balls_played}
+        {isAdmin ? (
+          <EditableCell
+            field="balls_played"
+            value={stat.balls_played}
+            type="number"
+            className="text-center"
+          />
+        ) : (
+          stat.balls_played
+        )}
       </td>
       <td className="px-6 py-4 text-center whitespace-nowrap">
         <div className="flex justify-center">
@@ -519,7 +733,9 @@ function StatRow({ stat, isAdmin, onUpdate, onDelete, editingCell, setEditingCel
       </td>
       <td className="px-6 py-4 text-center whitespace-nowrap">
         <div className="flex justify-center">
-          {stat.is_hundred && <span className="text-green-600 font-bold">✓</span>}
+          {stat.is_hundred && (
+            <span className="text-green-600 font-bold">✓</span>
+          )}
         </div>
       </td>
       <td className="px-6 py-4 text-center whitespace-nowrap">
@@ -528,28 +744,114 @@ function StatRow({ stat, isAdmin, onUpdate, onDelete, editingCell, setEditingCel
         </div>
       </td>
       <td className="px-6 py-4 text-center text-sm whitespace-nowrap">
-        {isAdmin ? <EditableCell field="wickets" value={stat.wickets} type="number" className="text-center" /> : stat.wickets}
+        {isAdmin ? (
+          <EditableCell
+            field="wickets"
+            value={stat.wickets}
+            type="number"
+            className="text-center"
+          />
+        ) : (
+          stat.wickets
+        )}
+      </td>
+      <td className="px-6 py-4 text-center whitespace-nowrap">
+        <div className="flex justify-center">
+          {stat.is_five_wicket && (
+            <span className="text-green-600 font-bold">✓</span>
+          )}
+        </div>
+      </td>
+      <td className="px-6 py-4 text-center whitespace-nowrap">
+        <div className="flex justify-center">
+          {stat.is_ten_wicket && (
+            <span className="text-green-600 font-bold">✓</span>
+          )}
+        </div>
       </td>
       <td className="px-6 py-4 text-center text-sm whitespace-nowrap">
-        {isAdmin ? <EditableCell field="overs_bowled" value={stat.overs_bowled} type="number" className="text-center" /> : stat.overs_bowled}
+        {isAdmin ? (
+          <EditableCell
+            field="overs_bowled"
+            value={stat.overs_bowled}
+            type="number"
+            className="text-center"
+          />
+        ) : (
+          stat.overs_bowled
+        )}
       </td>
       <td className="px-6 py-4 text-center text-sm whitespace-nowrap">
-        {isAdmin ? <EditableCell field="runs_conceded" value={stat.runs_conceded} type="number" className="text-center" /> : stat.runs_conceded}
+        {isAdmin ? (
+          <EditableCell
+            field="runs_conceded"
+            value={stat.runs_conceded}
+            type="number"
+            className="text-center"
+          />
+        ) : (
+          stat.runs_conceded
+        )}
       </td>
       <td className="px-6 py-4 text-center text-sm whitespace-nowrap">
-        {isAdmin ? <EditableCell field="catches" value={stat.catches} type="number" className="text-center" /> : stat.catches}
+        {isAdmin ? (
+          <EditableCell
+            field="catches"
+            value={stat.catches}
+            type="number"
+            className="text-center"
+          />
+        ) : (
+          stat.catches
+        )}
       </td>
       <td className="px-6 py-4 text-center text-sm whitespace-nowrap">
-        {isAdmin ? <EditableCell field="runouts" value={stat.runouts} type="number" className="text-center" /> : stat.runouts}
+        {isAdmin ? (
+          <EditableCell
+            field="runouts"
+            value={stat.runouts}
+            type="number"
+            className="text-center"
+          />
+        ) : (
+          stat.runouts
+        )}
       </td>
       <td className="px-6 py-4 text-center text-sm whitespace-nowrap">
-        {isAdmin ? <EditableCell field="stumpings" value={stat.stumpings} type="number" className="text-center" /> : stat.stumpings}
+        {isAdmin ? (
+          <EditableCell
+            field="stumpings"
+            value={stat.stumpings}
+            type="number"
+            className="text-center"
+          />
+        ) : (
+          stat.stumpings
+        )}
       </td>
       <td className="px-6 py-4 text-center text-sm whitespace-nowrap">
-        {isAdmin ? <EditableCell field="catches_dropped" value={stat.catches_dropped} type="number" className="text-center" /> : stat.catches_dropped}
+        {isAdmin ? (
+          <EditableCell
+            field="catches_dropped"
+            value={stat.catches_dropped}
+            type="number"
+            className="text-center"
+          />
+        ) : (
+          stat.catches_dropped
+        )}
       </td>
       <td className="px-6 py-4 text-center text-sm whitespace-nowrap">
-        {isAdmin ? <EditableCell field="stumpings_missed" value={stat.stumpings_missed} type="number" className="text-center" /> : stat.stumpings_missed}
+        {isAdmin ? (
+          <EditableCell
+            field="stumpings_missed"
+            value={stat.stumpings_missed}
+            type="number"
+            className="text-center"
+          />
+        ) : (
+          stat.stumpings_missed
+        )}
       </td>
       {isAdmin && (
         <td className="px-6 py-4 text-center whitespace-nowrap">
@@ -557,108 +859,128 @@ function StatRow({ stat, isAdmin, onUpdate, onDelete, editingCell, setEditingCel
             onClick={() => onDelete(stat.id, stat.match_number)}
             className="text-red-600 hover:text-red-800 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
           </button>
         </td>
       )}
     </tr>
-  )
+  );
 }
 
-
-function SeasonManagementModal({ seasons, onClose, onUpdate }: {
-  seasons: Season[]
-  onClose: () => void
-  onUpdate: () => void
+function SeasonManagementModal({
+  seasons,
+  onClose,
+  onUpdate,
+}: {
+  seasons: Season[];
+  onClose: () => void;
+  onUpdate: () => void;
 }) {
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    start_date: '',
-    end_date: '',
+    name: "",
+    start_date: "",
+    end_date: "",
     is_current: false,
-  })
-  const [loading, setLoading] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; seasonId: string; seasonName: string }>({
+  });
+  const [loading, setLoading] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    show: boolean;
+    seasonId: string;
+    seasonName: string;
+  }>({
     show: false,
-    seasonId: '',
-    seasonName: ''
-  })
-  const [deleting, setDeleting] = useState(false)
+    seasonId: "",
+    seasonName: "",
+  });
+  const [deleting, setDeleting] = useState(false);
 
   async function handleAddSeason(e: React.FormEvent) {
-    e.preventDefault()
-    if (!supabase) return
+    e.preventDefault();
+    if (!supabase) return;
 
-    setLoading(true)
+    setLoading(true);
 
     // If setting as current, unset all other current seasons
     if (formData.is_current) {
       await supabase
-        .from('seasons')
+        .from("seasons")
         .update({ is_current: false })
-        .eq('is_current', true)
+        .eq("is_current", true);
     }
 
-    const { error } = await supabase
-      .from('seasons')
-      .insert([formData])
+    const { error } = await supabase.from("seasons").insert([formData]);
 
-    setLoading(false)
+    setLoading(false);
 
     if (!error) {
-      setFormData({ name: '', start_date: '', end_date: '', is_current: false })
-      setShowAddForm(false)
-      onUpdate()
+      setFormData({
+        name: "",
+        start_date: "",
+        end_date: "",
+        is_current: false,
+      });
+      setShowAddForm(false);
+      onUpdate();
     } else {
-      alert('Error adding season: ' + error.message)
-      console.error('Season add error:', error)
+      alert("Error adding season: " + error.message);
+      console.error("Season add error:", error);
     }
   }
 
   async function handleSetCurrent(seasonId: string) {
-    if (!supabase) return
+    if (!supabase) return;
 
     // Unset all current seasons
     await supabase
-      .from('seasons')
+      .from("seasons")
       .update({ is_current: false })
-      .eq('is_current', true)
+      .eq("is_current", true);
 
     // Set this season as current
     const { error } = await supabase
-      .from('seasons')
+      .from("seasons")
       .update({ is_current: true })
-      .eq('id', seasonId)
+      .eq("id", seasonId);
 
     if (!error) {
-      onUpdate()
+      onUpdate();
     }
   }
 
   function showDeleteConfirm(seasonId: string, seasonName: string) {
-    setDeleteConfirm({ show: true, seasonId, seasonName })
+    setDeleteConfirm({ show: true, seasonId, seasonName });
   }
 
   async function handleDeleteSeason() {
-    if (!supabase) return
+    if (!supabase) return;
 
-    setDeleting(true)
+    setDeleting(true);
 
     const { error } = await supabase
-      .from('seasons')
+      .from("seasons")
       .delete()
-      .eq('id', deleteConfirm.seasonId)
+      .eq("id", deleteConfirm.seasonId);
 
-    setDeleting(false)
+    setDeleting(false);
 
     if (!error) {
-      setDeleteConfirm({ show: false, seasonId: '', seasonName: '' })
-      onUpdate()
+      setDeleteConfirm({ show: false, seasonId: "", seasonName: "" });
+      onUpdate();
     } else {
-      alert('Error deleting season: ' + error.message)
+      alert("Error deleting season: " + error.message);
     }
   }
 
@@ -667,9 +989,22 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
           <h2 className="text-2xl font-bold">Manage Seasons</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -681,8 +1016,18 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
               onClick={() => setShowAddForm(true)}
               className="w-full mb-6 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
               </svg>
               Add New Season
             </button>
@@ -690,16 +1035,23 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
 
           {/* Add Season Form */}
           {showAddForm && (
-            <form onSubmit={handleAddSeason} className="mb-6 bg-gray-50 rounded-lg p-6 space-y-4">
+            <form
+              onSubmit={handleAddSeason}
+              className="mb-6 bg-gray-50 rounded-lg p-6 space-y-4"
+            >
               <h3 className="text-lg font-semibold mb-4">Add New Season</h3>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Season Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Season Name *
+                </label>
                 <input
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="2025-26"
                 />
@@ -710,35 +1062,50 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
                   type="checkbox"
                   id="is_current"
                   checked={formData.is_current}
-                  onChange={(e) => setFormData({ ...formData, is_current: e.target.checked })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, is_current: e.target.checked })
+                  }
                   className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
                 />
-                <label htmlFor="is_current" className="text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="is_current"
+                  className="text-sm font-medium text-gray-700"
+                >
                   Set as current season (ongoing)
                 </label>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Start Date *
+                  </label>
                   <input
                     type="date"
                     required
                     value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, start_date: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    End Date {!formData.is_current && '*'}
-                    {formData.is_current && <span className="text-gray-500 font-normal">(optional for current season)</span>}
+                    End Date {!formData.is_current && "*"}
+                    {formData.is_current && (
+                      <span className="text-gray-500 font-normal">
+                        (optional for current season)
+                      </span>
+                    )}
                   </label>
                   <input
                     type="date"
                     required={!formData.is_current}
                     value={formData.end_date}
-                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, end_date: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100"
                     disabled={formData.is_current}
                   />
@@ -749,8 +1116,13 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
                 <button
                   type="button"
                   onClick={() => {
-                    setShowAddForm(false)
-                    setFormData({ name: '', start_date: '', end_date: '', is_current: false })
+                    setShowAddForm(false);
+                    setFormData({
+                      name: "",
+                      start_date: "",
+                      end_date: "",
+                      is_current: false,
+                    });
                   }}
                   className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 >
@@ -761,7 +1133,7 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
                   disabled={loading}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-medium hover:from-primary-700 hover:to-primary-800 transition-all disabled:opacity-50"
                 >
-                  {loading ? 'Adding...' : 'Add Season'}
+                  {loading ? "Adding..." : "Add Season"}
                 </button>
               </div>
             </form>
@@ -771,7 +1143,9 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
           <div className="space-y-3">
             <h3 className="text-lg font-semibold mb-4">Existing Seasons</h3>
             {seasons.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No seasons yet. Add your first season above.</p>
+              <p className="text-center text-gray-500 py-8">
+                No seasons yet. Add your first season above.
+              </p>
             ) : (
               seasons.map((season) => (
                 <div
@@ -780,7 +1154,9 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
-                      <h4 className="font-semibold text-gray-900">{season.name}</h4>
+                      <h4 className="font-semibold text-gray-900">
+                        {season.name}
+                      </h4>
                       {season.is_current && (
                         <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
                           Current
@@ -788,7 +1164,10 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
                       )}
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      {new Date(season.start_date).toLocaleDateString()} - {season.end_date ? new Date(season.end_date).toLocaleDateString() : 'Ongoing'}
+                      {new Date(season.start_date).toLocaleDateString()} -{" "}
+                      {season.end_date
+                        ? new Date(season.end_date).toLocaleDateString()
+                        : "Ongoing"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -804,8 +1183,18 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
                       onClick={() => showDeleteConfirm(season.id, season.name)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -821,24 +1210,47 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in">
               {/* Icon */}
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg
+                  className="w-8 h-8 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
                 </svg>
               </div>
 
               {/* Content */}
-              <h3 className="text-xl font-bold text-center mb-2">Delete Season?</h3>
+              <h3 className="text-xl font-bold text-center mb-2">
+                Delete Season?
+              </h3>
               <p className="text-gray-600 text-center mb-2">
-                Are you sure you want to delete <span className="font-semibold text-gray-900">{deleteConfirm.seasonName}</span>?
+                Are you sure you want to delete{" "}
+                <span className="font-semibold text-gray-900">
+                  {deleteConfirm.seasonName}
+                </span>
+                ?
               </p>
               <p className="text-red-600 text-sm text-center mb-6">
-                ⚠️ All player statistics for this season will be permanently deleted!
+                ⚠️ All player statistics for this season will be permanently
+                deleted!
               </p>
 
               {/* Buttons */}
               <div className="flex gap-3">
                 <button
-                  onClick={() => setDeleteConfirm({ show: false, seasonId: '', seasonName: '' })}
+                  onClick={() =>
+                    setDeleteConfirm({
+                      show: false,
+                      seasonId: "",
+                      seasonName: "",
+                    })
+                  }
                   disabled={deleting}
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
@@ -855,7 +1267,7 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
                       Deleting...
                     </>
                   ) : (
-                    'Delete Season'
+                    "Delete Season"
                   )}
                 </button>
               </div>
@@ -864,5 +1276,5 @@ function SeasonManagementModal({ seasons, onClose, onUpdate }: {
         )}
       </div>
     </div>
-  )
+  );
 }

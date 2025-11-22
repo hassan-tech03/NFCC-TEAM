@@ -17,6 +17,20 @@ interface Player {
   age?: number;
   jersey_number?: number;
   stats?: any;
+  seasonStats?: {
+    matches: number;
+    runs: number;
+    ballsPlayed: number;
+    fifties: number;
+    hundreds: number;
+    notOuts: number;
+    wickets: number;
+    fiveWickets: number;
+    tenWickets: number;
+    catches: number;
+    stumpings: number;
+    runouts: number;
+  };
 }
 
 export default function PlayersPage() {
@@ -25,6 +39,7 @@ export default function PlayersPage() {
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("all");
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
     loadPlayers();
@@ -37,14 +52,60 @@ export default function PlayersPage() {
       return;
     }
 
-    const { data, error } = await supabase
+    // Get players
+    const { data: playersData, error } = await supabase
       .from("players")
       .select("*")
       .order("name", { ascending: true });
 
-    if (!error && data) {
-      setPlayers(data);
+    if (error || !playersData) {
+      setLoading(false);
+      return;
     }
+
+    // Get current season
+    const { data: currentSeason } = await supabase
+      .from("seasons")
+      .select("id")
+      .eq("is_current", true)
+      .single();
+
+    if (!currentSeason) {
+      setPlayers(playersData);
+      setLoading(false);
+      return;
+    }
+
+    // Get season stats for all players
+    const { data: seasonStats } = await supabase
+      .from("player_season_stats")
+      .select("*")
+      .eq("season_id", currentSeason.id);
+
+    // Calculate stats for each player
+    const playersWithStats = playersData.map((player) => {
+      const playerStats = seasonStats?.filter((s) => s.player_id === player.id) || [];
+      
+      return {
+        ...player,
+        seasonStats: {
+          matches: playerStats.length,
+          runs: playerStats.reduce((sum, s) => sum + (s.runs || 0), 0),
+          ballsPlayed: playerStats.reduce((sum, s) => sum + (s.balls_played || 0), 0),
+          fifties: playerStats.filter((s) => s.is_fifty).length,
+          hundreds: playerStats.filter((s) => s.is_hundred).length,
+          notOuts: playerStats.filter((s) => s.not_out).length,
+          wickets: playerStats.reduce((sum, s) => sum + (s.wickets || 0), 0),
+          fiveWickets: playerStats.filter((s) => s.is_five_wicket).length,
+          tenWickets: playerStats.filter((s) => s.is_ten_wicket).length,
+          catches: playerStats.reduce((sum, s) => sum + (s.catches || 0), 0),
+          stumpings: playerStats.reduce((sum, s) => sum + (s.stumpings || 0), 0),
+          runouts: playerStats.reduce((sum, s) => sum + (s.runouts || 0), 0),
+        },
+      };
+    });
+
+    setPlayers(playersWithStats);
     setLoading(false);
   }
 
@@ -157,6 +218,7 @@ export default function PlayersPage() {
                 player={player}
                 isAdmin={isAdminUser}
                 onUpdate={loadPlayers}
+                onClick={() => setSelectedPlayer(player)}
               />
             ))}
           </div>
@@ -172,6 +234,14 @@ export default function PlayersPage() {
             }}
           />
         )}
+
+        {/* Player Stats Popup */}
+        {selectedPlayer && (
+          <PlayerStatsPopup
+            player={selectedPlayer}
+            onClose={() => setSelectedPlayer(null)}
+          />
+        )}
       </div>
     </div>
   );
@@ -181,10 +251,12 @@ function PlayerCard({
   player,
   isAdmin,
   onUpdate,
+  onClick,
 }: {
   player: Player;
   isAdmin: boolean;
   onUpdate: () => void;
+  onClick: () => void;
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -212,7 +284,10 @@ function PlayerCard({
   }
 
   return (
-    <div className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
+    <div 
+      className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer"
+      onClick={onClick}
+    >
       {/* Jersey Number Badge */}
       {player.jersey_number && (
         <div className="absolute top-4 right-4 z-10 bg-gradient-to-br from-primary-600 to-primary-700 text-white w-14 h-14 rounded-full flex items-center justify-center font-bold text-xl shadow-lg">
@@ -362,19 +437,36 @@ function PlayerCard({
           {player.role.replace("-", " ")}
         </p>
 
-        {/* Stats */}
-        {player.stats && (
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-gray-500 text-xs">Matches</div>
-              <div className="font-bold text-lg">
-                {player.stats.matches || 0}
+        {/* Season Stats */}
+        {player.seasonStats && player.seasonStats.matches > 0 ? (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              <div className="bg-gray-50 rounded-lg p-2 text-center">
+                <div className="text-gray-500 text-xs">Matches</div>
+                <div className="font-bold text-lg">{player.seasonStats.matches}</div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-2 text-center">
+                <div className="text-gray-500 text-xs">Runs</div>
+                <div className="font-bold text-lg">{player.seasonStats.runs}</div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-2 text-center">
+                <div className="text-gray-500 text-xs">Wkts</div>
+                <div className="font-bold text-lg">{player.seasonStats.wickets}</div>
               </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-gray-500 text-xs">Runs</div>
-              <div className="font-bold text-lg">{player.stats.runs || 0}</div>
-            </div>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick();
+              }}
+              className="w-full bg-primary-50 hover:bg-primary-100 text-primary-700 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              View Full Stats →
+            </button>
+          </div>
+        ) : (
+          <div className="text-center py-4 text-gray-500 text-sm">
+            No stats for current season
           </div>
         )}
 
@@ -821,6 +913,101 @@ function AddPlayerModal({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function PlayerStatsPopup({ player, onClose }: { player: Player; onClose: () => void }) {
+  const stats = player.seasonStats;
+
+  if (!stats) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-6 rounded-t-2xl">
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-1">{player.name}</h2>
+              <p className="text-primary-100 capitalize">{player.role.replace('-', ' ')}</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Stats Content */}
+        <div className="p-6 space-y-6">
+          {/* Batting Stats */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="text-2xl">🏏</span>
+              Batting Statistics
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <StatCard label="Matches" value={stats.matches} />
+              <StatCard label="Runs" value={stats.runs} highlight />
+              <StatCard label="Balls" value={stats.ballsPlayed} />
+              <StatCard label="50s" value={stats.fifties} />
+              <StatCard label="100s" value={stats.hundreds} />
+              <StatCard label="Not Outs" value={stats.notOuts} />
+            </div>
+          </div>
+
+          {/* Bowling Stats */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="text-2xl">⚡</span>
+              Bowling Statistics
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <StatCard label="Wickets" value={stats.wickets} highlight />
+              <StatCard label="5-Wicket Hauls" value={stats.fiveWickets} />
+              <StatCard label="10-Wicket Hauls" value={stats.tenWickets} />
+            </div>
+          </div>
+
+          {/* Fielding Stats */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="text-2xl">🧤</span>
+              Fielding Statistics
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <StatCard label="Catches" value={stats.catches} />
+              <StatCard label="Stumpings" value={stats.stumpings} />
+              <StatCard label="Run Outs" value={stats.runouts} />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-gray-50 px-6 py-4 rounded-b-2xl">
+          <p className="text-sm text-gray-600 text-center">
+            Current Season Statistics • Updated in real-time
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <div className={`rounded-xl p-4 ${highlight ? 'bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-200' : 'bg-gray-50'}`}>
+      <div className={`text-xs font-medium mb-1 ${highlight ? 'text-primary-700' : 'text-gray-600'}`}>
+        {label}
+      </div>
+      <div className={`text-2xl font-bold ${highlight ? 'text-primary-700' : 'text-gray-900'}`}>
+        {value}
       </div>
     </div>
   );
