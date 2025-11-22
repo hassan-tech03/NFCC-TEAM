@@ -417,7 +417,7 @@ function PlayerCard({
       )}
 
       {/* Player Photo */}
-      <div className="relative h-80 bg-gradient-to-br from-primary-100 to-primary-200 overflow-hidden">
+      <div className="relative h-56 bg-gradient-to-br from-primary-100 to-primary-200 overflow-hidden">
         {player.photo_url ? (
           <Image
             src={player.photo_url}
