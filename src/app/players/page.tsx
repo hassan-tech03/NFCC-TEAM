@@ -285,8 +285,7 @@ function PlayerCard({
 
   return (
     <div 
-      className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer"
-      onClick={onClick}
+      className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
     >
       {/* Jersey Number Badge */}
       {player.jersey_number && (
@@ -299,7 +298,10 @@ function PlayerCard({
       {isAdmin && (
         <div className="absolute top-4 left-4 z-10">
           <button
-            onClick={() => setShowMenu(!showMenu)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
             className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-white transition-all"
           >
             <svg
@@ -319,7 +321,8 @@ function PlayerCard({
           {showMenu && (
             <div className="absolute top-12 left-0 bg-white rounded-lg shadow-xl py-2 min-w-[120px] z-20">
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowEditModal(true);
                   setShowMenu(false);
                 }}
@@ -328,7 +331,8 @@ function PlayerCard({
                 Edit
               </button>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowDeleteConfirm(true);
                   setShowMenu(false);
                 }}
@@ -432,7 +436,15 @@ function PlayerCard({
 
       {/* Player Info */}
       <div className="p-6">
-        <h3 className="text-xl font-bold mb-1 text-gray-900">{player.name}</h3>
+        <h3 
+          className="text-xl font-bold mb-1 text-gray-900 cursor-pointer hover:text-primary-600 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
+        >
+          {player.name}
+        </h3>
         <p className="text-primary-600 font-medium capitalize mb-4">
           {player.role.replace("-", " ")}
         </p>
