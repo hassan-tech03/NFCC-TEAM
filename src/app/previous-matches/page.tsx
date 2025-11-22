@@ -402,13 +402,13 @@ function MatchCard({
         <h3 className="text-2xl font-bold mb-2">{match.title}</h3>
         <p className="text-white/90 text-lg mb-4">vs {match.opponent}</p>
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="font-medium">Our Score:</span>
-            <span className="text-xl font-bold">{match.our_score}</span>
+          <div className="flex justify-between items-center mb-2 gap-3">
+            <span className="font-medium whitespace-nowrap">Our Score:</span>
+            <span className="text-xl font-bold text-right">{match.our_score}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Opponent:</span>
-            <span className="text-xl font-bold">{match.opponent_score}</span>
+          <div className="flex justify-between items-center gap-3">
+            <span className="font-medium whitespace-nowrap">Opponent:</span>
+            <span className="text-xl font-bold text-right">{match.opponent_score}</span>
           </div>
         </div>
       </div>

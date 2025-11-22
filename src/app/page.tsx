@@ -169,13 +169,13 @@ export default async function HomePage() {
                     </span>
                   </div>
                   <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Our Team</span>
-                      <span className="font-semibold">{match.our_score}</span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-gray-600 whitespace-nowrap">Our Team</span>
+                      <span className="font-semibold text-right">{match.our_score}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{match.opponent}</span>
-                      <span className="font-semibold">{match.opponent_score}</span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-gray-600 truncate">{match.opponent}</span>
+                      <span className="font-semibold text-right whitespace-nowrap">{match.opponent_score}</span>
                     </div>
                   </div>
                   <div className="mt-4 text-xs text-gray-500">
