@@ -1175,8 +1175,8 @@ function SeasonManagementModal({
 }: {
   seasons: Season[];
   onClose: () => void;
-  onUpdate: () => void;
-}) {
+  onUpdate: ( => void;
+}) {)
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",

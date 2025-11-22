@@ -58,7 +58,13 @@ export async function getSettings() {
     .single()
 
   if (error) {
-    console.error('❌ Error fetching settings:', error)
+    // console.error('❌ Error fetching settings:', error)
+    console.log('Using dummy data for settings')
+    return dummyData.settings
+  }
+
+  if (!data) {
+    console.log('No settings found in database, using dummy data')
     return dummyData.settings
   }
 
