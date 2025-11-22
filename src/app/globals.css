@@ -6,6 +6,23 @@
   body {
     @apply bg-gray-50 text-gray-900;
   }
+  
+  /* Mobile-first typography */
+  h1 {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;
+  }
+  
+  h2 {
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+  }
+  
+  h3 {
+    @apply text-lg sm:text-xl md:text-2xl;
+  }
+  
+  p {
+    @apply text-sm sm:text-base;
+  }
 }
 
 @layer components {
@@ -14,11 +31,11 @@
   }
   
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200;
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-colors duration-200 text-sm sm:text-base;
   }
   
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-200;
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-colors duration-200 text-sm sm:text-base;
   }
   
   .card {
@@ -55,4 +72,34 @@
 
 .animate-scale-in {
   animation: scale-in 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .container-custom {
+    @apply px-3;
+  }
+  
+  /* Prevent text overflow on mobile */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
 }

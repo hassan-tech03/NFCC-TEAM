@@ -218,11 +218,11 @@ export default function SeasonStatsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
       <div className="container-custom">
-        <div className="text-center mb-8">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
+        <div className="text-center mb-6 sm:mb-8 px-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
             Season Statistics
           </h1>
-          <p className="text-xl text-gray-600">Track player performance across matches</p>
+          <p className="text-sm sm:text-base md:text-lg text-gray-600">Track player performance across matches</p>
         </div>
 
         {/* Filters */}

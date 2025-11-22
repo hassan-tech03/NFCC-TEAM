@@ -37,8 +37,8 @@ export default function Header() {
     <header className="bg-white shadow-md sticky top-0 z-50">
       <nav className="container-custom py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="relative w-12 h-12 rounded-full overflow-hidden bg-white">
+          <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
+            <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-white flex-shrink-0">
               <Image
                 src="https://res.cloudinary.com/dfy225ucr/image/upload/v1763752913/NFCC_qrgele.jpg"
                 alt="New Friends Cricket Club"
@@ -48,7 +48,7 @@ export default function Header() {
                 priority
               />
             </div>
-            <span className="text-2xl font-bold text-primary-700">
+            <span className="text-sm sm:text-lg md:text-2xl font-bold text-primary-700 line-clamp-1">
               {settings?.team_name || "New Friends Cricket Club"}
             </span>
           </Link>

@@ -27,20 +27,20 @@ export default async function HomePage() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative h-[500px] bg-gradient-to-r from-primary-900 to-primary-700">
+      <section className="relative h-[400px] sm:h-[500px] bg-gradient-to-r from-primary-900 to-primary-700">
         <div className="absolute inset-0 flex items-center">
-          <div className="container-custom text-white">
-            <h1 className="text-5xl md:text-6xl font-bold mb-4">
+          <div className="container-custom text-white px-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4">
               {settings?.team_name || 'Welcome to Our Team'}
             </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-2xl">
+            <p className="text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8 max-w-2xl">
               {settings?.tagline || 'Excellence in Cricket'}
             </p>
-            <div className="flex gap-4">
-              <Link href="/matches" className="btn-primary">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <Link href="/matches" className="btn-primary text-center">
                 Upcoming Matches
               </Link>
-              <Link href="/players" className="btn-secondary bg-white hover:bg-gray-100 text-gray-800">
+              <Link href="/players" className="btn-secondary bg-white hover:bg-gray-100 text-gray-800 text-center">
                 View Squad
               </Link>
             </div>

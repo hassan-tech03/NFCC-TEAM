@@ -77,11 +77,11 @@ export default function PlayersPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
       <div className="container-custom">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
+        <div className="text-center mb-8 sm:mb-12 px-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
             Our Squad
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600">
             Meet the talented players of our team
           </p>
         </div>
