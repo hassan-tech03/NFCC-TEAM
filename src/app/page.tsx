@@ -5,24 +5,22 @@ import {
   getFeaturedPlayers,
   getNextMatch,
   getRecentMatches,
-  getFeaturedNews,
 } from '@/lib/supabase.queries'
 
 async function getHomeData() {
-  const [settings, stats, featuredPlayers, nextMatch, recentMatches, featuredNews] = await Promise.all([
+  const [settings, stats, featuredPlayers, nextMatch, recentMatches] = await Promise.all([
     getSettings(),
     getStats(),
     getFeaturedPlayers(),
     getNextMatch(),
     getRecentMatches(),
-    getFeaturedNews(),
   ])
 
-  return { settings, stats, featuredPlayers, nextMatch, recentMatches, featuredNews }
+  return { settings, stats, featuredPlayers, nextMatch, recentMatches }
 }
 
 export default async function HomePage() {
-  const { settings, stats, featuredPlayers, nextMatch, recentMatches, featuredNews } = await getHomeData()
+  const { settings, stats, featuredPlayers, nextMatch, recentMatches } = await getHomeData()
 
   return (
     <div>
@@ -79,7 +77,7 @@ export default async function HomePage() {
             <h2 className="text-3xl font-bold mb-8 text-center">Next Match</h2>
             <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-8">
               <div className="text-center">
-                <div className="text-sm text-gray-500 uppercase mb-2">{nextMatch.matchType?.toUpperCase()}</div>
+                <div className="text-sm text-gray-500 uppercase mb-2">{nextMatch.match_type?.toUpperCase()}</div>
                 <h3 className="text-2xl font-bold mb-4">{nextMatch.title}</h3>
                 <div className="text-xl text-gray-700 mb-4">vs {nextMatch.opponent}</div>
                 <div className="flex justify-center items-center gap-4 text-gray-600 mb-6">
@@ -87,7 +85,7 @@ export default async function HomePage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    {new Date(nextMatch.matchDate).toLocaleDateString('en-US', {
+                    {new Date(nextMatch.match_date).toLocaleDateString('en-US', {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
@@ -169,15 +167,15 @@ export default async function HomePage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Our Team</span>
-                      <span className="font-semibold">{match.ourScore}</span>
+                      <span className="font-semibold">{match.our_score}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">{match.opponent}</span>
-                      <span className="font-semibold">{match.opponentScore}</span>
+                      <span className="font-semibold">{match.opponent_score}</span>
                     </div>
                   </div>
                   <div className="mt-4 text-xs text-gray-500">
-                    {new Date(match.matchDate).toLocaleDateString()}
+                    {new Date(match.match_date).toLocaleDateString()}
                   </div>
                 </div>
               ))}
@@ -186,35 +184,6 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Featured News Section */}
-      {featuredNews && featuredNews.length > 0 && (
-        <section className="py-16 bg-white">
-          <div className="container-custom">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl font-bold">Latest News</h2>
-              <Link href="/news" className="text-primary-600 hover:text-primary-700 font-semibold">
-                View All →
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {featuredNews.map((news: any) => (
-                <div key={news._id} className="card">
-                  <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                    <div className="text-5xl">📰</div>
-                  </div>
-                  <div className="p-6">
-                    <div className="text-xs text-gray-500 mb-2">
-                      {new Date(news.publishedAt).toLocaleDateString()}
-                    </div>
-                    <h3 className="text-lg font-bold mb-2 line-clamp-2">{news.title}</h3>
-                    <p className="text-gray-600 text-sm line-clamp-3">{news.excerpt}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
     </div>
   )
 }

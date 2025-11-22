@@ -4,6 +4,14 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase.client'
 import { isAdmin } from '@/lib/supabase.auth'
 
+interface Season {
+  id: string
+  name: string
+  start_date: string
+  end_date?: string
+  is_current: boolean
+}
+
 interface PreviousMatch {
   id: string
   title: string
@@ -18,17 +26,22 @@ interface PreviousMatch {
   opponent_score: string
   summary?: string
   highlights?: string[]
+  season_id?: string
+  seasons?: Season
 }
 
 export default function PreviousMatchesPage() {
   const [matches, setMatches] = useState<PreviousMatch[]>([])
+  const [seasons, setSeasons] = useState<Season[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdminUser, setIsAdminUser] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [filterResult, setFilterResult] = useState<string>('all')
+  const [filterSeason, setFilterSeason] = useState<string>('all')
 
   useEffect(() => {
     loadMatches()
+    loadSeasons()
     checkAdmin()
   }, [])
 
@@ -40,7 +53,7 @@ export default function PreviousMatchesPage() {
 
     const { data, error } = await supabase
       .from('previous_matches')
-      .select('*')
+      .select('*, seasons(*)')
       .order('match_date', { ascending: false })
 
     if (!error && data) {
@@ -49,14 +62,29 @@ export default function PreviousMatchesPage() {
     setLoading(false)
   }
 
+  async function loadSeasons() {
+    if (!supabase) return
+
+    const { data, error } = await supabase
+      .from('seasons')
+      .select('*')
+      .order('start_date', { ascending: false })
+
+    if (!error && data) {
+      setSeasons(data)
+    }
+  }
+
   async function checkAdmin() {
     const admin = await isAdmin()
     setIsAdminUser(admin)
   }
 
-  const filteredMatches = filterResult === 'all' 
-    ? matches 
-    : matches.filter(m => m.result === filterResult)
+  const filteredMatches = matches.filter(m => {
+    const resultMatch = filterResult === 'all' || m.result === filterResult
+    const seasonMatch = filterSeason === 'all' || m.season_id === filterSeason
+    return resultMatch && seasonMatch
+  })
 
   if (loading) {
     return (
@@ -90,7 +118,7 @@ export default function PreviousMatchesPage() {
           </div>
         )}
 
-        <div className="mb-8 flex flex-wrap gap-2 justify-center">
+        <div className="mb-6 flex flex-wrap gap-2 justify-center">
           {['all', 'won', 'lost', 'draw', 'tie'].map((result) => (
             <button
               key={result}
@@ -105,6 +133,28 @@ export default function PreviousMatchesPage() {
             </button>
           ))}
         </div>
+
+        {seasons.length > 0 && (
+          <div className="mb-8 flex justify-center">
+            <div className="inline-flex items-center gap-3 bg-white rounded-full shadow-lg px-6 py-3">
+              <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <select
+                value={filterSeason}
+                onChange={(e) => setFilterSeason(e.target.value)}
+                className="bg-transparent border-none outline-none font-medium text-gray-700 cursor-pointer"
+              >
+                <option value="all">All Seasons</option>
+                {seasons.map((season) => (
+                  <option key={season.id} value={season.id}>
+                    {season.name} {season.is_current ? '(Current)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
 
         {filteredMatches.length === 0 ? (
           <div className="text-center py-20">
@@ -268,8 +318,8 @@ function MatchCard({ match, isAdmin, onUpdate }: { match: PreviousMatch; isAdmin
         </div>
       )}
 
-      <div className={`bg-gradient-to-br ${resultColors[match.result]} p-6 text-white`}>
-        <div className="flex items-center justify-between mb-4">
+      <div className={`bg-gradient-to-br ${resultColors[match.result]} p-6 text-white ${isAdmin ? 'pr-16' : ''}`}>
+        <div className="flex items-center justify-between mb-4 gap-3">
           <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
             {match.match_type}
           </span>
@@ -306,6 +356,14 @@ function MatchCard({ match, isAdmin, onUpdate }: { match: PreviousMatch; isAdmin
             </svg>
             <span>{match.venue}</span>
           </div>
+          {match.seasons && (
+            <div className="flex items-center gap-3 text-gray-700">
+              <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-medium">Season {match.seasons.name}</span>
+            </div>
+          )}
         </div>
         {match.summary && (
           <p className="text-gray-600 text-sm mb-4">{match.summary}</p>
@@ -340,8 +398,27 @@ function EditMatchModal({ match, onClose, onSuccess }: { match: PreviousMatch; o
     opponent_score: match.opponent_score,
     summary: match.summary || '',
     highlights: match.highlights?.join('\n') || '',
+    season_id: match.season_id || '',
   })
+  const [seasons, setSeasons] = useState<Season[]>([])
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    loadSeasons()
+  }, [])
+
+  async function loadSeasons() {
+    if (!supabase) return
+
+    const { data, error } = await supabase
+      .from('seasons')
+      .select('*')
+      .order('start_date', { ascending: false })
+
+    if (!error && data) {
+      setSeasons(data)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -369,6 +446,7 @@ function EditMatchModal({ match, onClose, onSuccess }: { match: PreviousMatch; o
         opponent_score: formData.opponent_score,
         summary: formData.summary,
         highlights: highlightsArray,
+        season_id: formData.season_id || null,
       })
       .eq('id', match.id)
 
@@ -449,6 +527,23 @@ function EditMatchModal({ match, onClose, onSuccess }: { match: PreviousMatch; o
               onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Season *</label>
+            <select
+              required
+              value={formData.season_id}
+              onChange={(e) => setFormData({ ...formData, season_id: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="">Select Season</option>
+              {seasons.map((season) => (
+                <option key={season.id} value={season.id}>
+                  {season.name} {season.is_current ? '(Current)' : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -547,8 +642,32 @@ function AddMatchModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
     opponent_score: '',
     summary: '',
     highlights: '',
+    season_id: '',
   })
+  const [seasons, setSeasons] = useState<Season[]>([])
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    loadSeasons()
+  }, [])
+
+  async function loadSeasons() {
+    if (!supabase) return
+
+    const { data, error } = await supabase
+      .from('seasons')
+      .select('*')
+      .order('start_date', { ascending: false })
+
+    if (!error && data) {
+      setSeasons(data)
+      // Set current season as default
+      const currentSeason = data.find(s => s.is_current)
+      if (currentSeason) {
+        setFormData(prev => ({ ...prev, season_id: currentSeason.id }))
+      }
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -576,6 +695,7 @@ function AddMatchModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
         opponent_score: formData.opponent_score,
         summary: formData.summary,
         highlights: highlightsArray,
+        season_id: formData.season_id || null,
       }])
 
     setLoading(false)
@@ -658,6 +778,23 @@ function AddMatchModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Central Cricket Ground"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Season *</label>
+            <select
+              required
+              value={formData.season_id}
+              onChange={(e) => setFormData({ ...formData, season_id: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="">Select Season</option>
+              {seasons.map((season) => (
+                <option key={season.id} value={season.id}>
+                  {season.name} {season.is_current ? '(Current)' : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

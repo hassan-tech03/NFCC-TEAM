@@ -234,8 +234,8 @@ function MatchCard({ match, isAdmin, onUpdate }: { match: Match; isAdmin: boolea
         </div>
       )}
 
-      <div className="bg-gradient-to-br from-primary-500 to-primary-700 p-6 text-white">
-        <div className="flex items-center justify-between mb-4">
+      <div className={`bg-gradient-to-br from-primary-500 to-primary-700 p-6 text-white ${isAdmin ? 'pr-16' : ''}`}>
+        <div className="flex items-center justify-between mb-4 gap-3">
           <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
             {match.match_type}
           </span>
