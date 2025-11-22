@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase.client";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [settings, setSettings] = useState<any>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     loadSettings();
@@ -57,43 +59,71 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-8">
             <Link
               href="/"
-              className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+              className={`font-medium transition-colors ${
+                pathname === "/"
+                  ? "text-primary-600 border-b-2 border-primary-600"
+                  : "text-gray-700 hover:text-primary-600"
+              }`}
             >
               Home
             </Link>
             <Link
               href="/players"
-              className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+              className={`font-medium transition-colors ${
+                pathname === "/players"
+                  ? "text-primary-600 border-b-2 border-primary-600"
+                  : "text-gray-700 hover:text-primary-600"
+              }`}
             >
               Players
             </Link>
             <Link
               href="/matches"
-              className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+              className={`font-medium transition-colors ${
+                pathname === "/matches"
+                  ? "text-primary-600 border-b-2 border-primary-600"
+                  : "text-gray-700 hover:text-primary-600"
+              }`}
             >
               Matches
             </Link>
             <Link
               href="/previous-matches"
-              className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+              className={`font-medium transition-colors ${
+                pathname === "/previous-matches"
+                  ? "text-primary-600 border-b-2 border-primary-600"
+                  : "text-gray-700 hover:text-primary-600"
+              }`}
             >
               Results
             </Link>
             <Link
               href="/season-stats"
-              className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+              className={`font-medium transition-colors ${
+                pathname === "/season-stats"
+                  ? "text-primary-600 border-b-2 border-primary-600"
+                  : "text-gray-700 hover:text-primary-600"
+              }`}
             >
               Stats
             </Link>
             <Link
               href="/about"
-              className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+              className={`font-medium transition-colors ${
+                pathname === "/about"
+                  ? "text-primary-600 border-b-2 border-primary-600"
+                  : "text-gray-700 hover:text-primary-600"
+              }`}
             >
               About
             </Link>
             <Link
               href="/contact"
-              className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+              className={`font-medium transition-colors ${
+                pathname === "/contact"
+                  ? "text-primary-600 border-b-2 border-primary-600"
+                  : "text-gray-700 hover:text-primary-600"
+              }`}
             >
               Contact
             </Link>
@@ -144,49 +174,77 @@ export default function Header() {
               <Link
                 href="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 font-medium transition-colors px-4 py-2 rounded-lg"
+                className={`font-medium transition-colors px-4 py-2 rounded-lg ${
+                  pathname === "/"
+                    ? "text-primary-600 bg-primary-50"
+                    : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                }`}
               >
                 Home
               </Link>
               <Link
                 href="/players"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 font-medium transition-colors px-4 py-2 rounded-lg"
+                className={`font-medium transition-colors px-4 py-2 rounded-lg ${
+                  pathname === "/players"
+                    ? "text-primary-600 bg-primary-50"
+                    : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                }`}
               >
                 Players
               </Link>
               <Link
                 href="/matches"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 font-medium transition-colors px-4 py-2 rounded-lg"
+                className={`font-medium transition-colors px-4 py-2 rounded-lg ${
+                  pathname === "/matches"
+                    ? "text-primary-600 bg-primary-50"
+                    : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                }`}
               >
                 Matches
               </Link>
               <Link
                 href="/previous-matches"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 font-medium transition-colors px-4 py-2 rounded-lg"
+                className={`font-medium transition-colors px-4 py-2 rounded-lg ${
+                  pathname === "/previous-matches"
+                    ? "text-primary-600 bg-primary-50"
+                    : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                }`}
               >
                 Results
               </Link>
               <Link
                 href="/season-stats"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 font-medium transition-colors px-4 py-2 rounded-lg"
+                className={`font-medium transition-colors px-4 py-2 rounded-lg ${
+                  pathname === "/season-stats"
+                    ? "text-primary-600 bg-primary-50"
+                    : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                }`}
               >
                 Stats
               </Link>
               <Link
                 href="/about"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 font-medium transition-colors px-4 py-2 rounded-lg"
+                className={`font-medium transition-colors px-4 py-2 rounded-lg ${
+                  pathname === "/about"
+                    ? "text-primary-600 bg-primary-50"
+                    : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                }`}
               >
                 About
               </Link>
               <Link
                 href="/contact"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 font-medium transition-colors px-4 py-2 rounded-lg"
+                className={`font-medium transition-colors px-4 py-2 rounded-lg ${
+                  pathname === "/contact"
+                    ? "text-primary-600 bg-primary-50"
+                    : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                }`}
               >
                 Contact
               </Link>
