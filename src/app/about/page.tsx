@@ -16,13 +16,48 @@ export default function AboutPage() {
       </section>
 
       {/* Main Content */}
-      <section className="py-16">
+      <section className="py-8 sm:py-16">
         <div className="container-custom px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-12">
+            {/* Memorial Card - Mobile Only (appears first) */}
+            <div className="lg:hidden">
+              <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border-2 border-primary-200">
+                <div className="text-center">
+                  <div className="mb-4">
+                    <div className="w-40 h-40 sm:w-48 sm:h-48 mx-auto rounded-2xl overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 shadow-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-5xl sm:text-6xl mb-2">🏏</div>
+                        <p className="text-xs sm:text-sm text-gray-600 px-4">
+                          In loving memory
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                    Muhammad Mohsin Karamat
+                  </h3>
+                  <p className="text-base sm:text-lg text-gray-600 font-semibold mb-4">
+                    1993 - 2024
+                  </p>
+                  <div className="bg-primary-50 rounded-lg p-3 sm:p-4 mb-4">
+                    <p className="text-sm font-semibold text-primary-900 mb-1">
+                      Founder & Captain
+                    </p>
+                    <p className="text-xs text-primary-700">
+                      2009 - 2024
+                    </p>
+                  </div>
+                  <p className="text-sm text-gray-600 italic leading-relaxed">
+                    "A visionary leader whose passion for cricket and dedication to his team created a legacy that will inspire generations to come."
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Content Column */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-6 sm:space-y-8">
               {/* The Beginning */}
-              <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
                     <span className="text-2xl">🌱</span>
@@ -44,7 +79,7 @@ export default function AboutPage() {
               </div>
 
               {/* The Transition */}
-              <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                     <span className="text-2xl">🏏</span>
@@ -65,7 +100,7 @@ export default function AboutPage() {
               </div>
 
               {/* The Partnership */}
-              <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
                     <span className="text-2xl">🤝</span>
@@ -87,7 +122,7 @@ export default function AboutPage() {
               </div>
 
               {/* The Legacy */}
-              <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl shadow-lg p-8 border-2 border-primary-200">
+              <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border-2 border-primary-200">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center">
                     <span className="text-2xl">⭐</span>
@@ -114,35 +149,35 @@ export default function AboutPage() {
               </div>
 
               {/* Our Values */}
-              <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-2xl">💎</span>
                   </div>
                   <h2 className="text-3xl font-bold text-gray-900">Our Values</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6">
-                    <h3 className="text-xl font-bold text-primary-900 mb-3">Excellence</h3>
-                    <p className="text-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 sm:p-6">
+                    <h3 className="text-lg sm:text-xl font-bold text-primary-900 mb-2 sm:mb-3">Excellence</h3>
+                    <p className="text-sm sm:text-base text-gray-700">
                       We strive for excellence in every aspect of the game, honoring Mohsin's commitment to continuous improvement.
                     </p>
                   </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6">
-                    <h3 className="text-xl font-bold text-green-900 mb-3">Brotherhood</h3>
-                    <p className="text-gray-700">
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 sm:p-6">
+                    <h3 className="text-lg sm:text-xl font-bold text-green-900 mb-2 sm:mb-3">Brotherhood</h3>
+                    <p className="text-sm sm:text-base text-gray-700">
                       We are more than teammates—we are a family, supporting each other on and off the field.
                     </p>
                   </div>
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6">
-                    <h3 className="text-xl font-bold text-blue-900 mb-3">Dedication</h3>
-                    <p className="text-gray-700">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 sm:p-6">
+                    <h3 className="text-lg sm:text-xl font-bold text-blue-900 mb-2 sm:mb-3">Dedication</h3>
+                    <p className="text-sm sm:text-base text-gray-700">
                       We dedicate ourselves fully to the sport, our team, and the legacy we've inherited.
                     </p>
                   </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6">
-                    <h3 className="text-xl font-bold text-purple-900 mb-3">Sportsmanship</h3>
-                    <p className="text-gray-700">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 sm:p-6">
+                    <h3 className="text-lg sm:text-xl font-bold text-purple-900 mb-2 sm:mb-3">Sportsmanship</h3>
+                    <p className="text-sm sm:text-base text-gray-700">
                       We compete with integrity, respect our opponents, and uphold the spirit of cricket.
                     </p>
                   </div>
@@ -150,7 +185,7 @@ export default function AboutPage() {
               </div>
 
               {/* Looking Forward */}
-              <div className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300">
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 hover:shadow-xl transition-shadow duration-300">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
                     <span className="text-2xl">🚀</span>
@@ -177,8 +212,8 @@ export default function AboutPage() {
             {/* Sticky Sidebar */}
             <div className="lg:col-span-1">
               <div className="lg:sticky lg:top-24 space-y-6">
-                {/* Memorial Card */}
-                <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-primary-200">
+                {/* Memorial Card - Desktop Only */}
+                <div className="hidden lg:block bg-white rounded-2xl shadow-xl p-6 border-2 border-primary-200">
                   <div className="text-center">
                     <div className="mb-4">
                       <div className="w-48 h-48 mx-auto rounded-2xl overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 shadow-lg flex items-center justify-center">
