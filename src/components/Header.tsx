@@ -117,16 +117,6 @@ export default function Header() {
             >
               About
             </Link>
-            <Link
-              href="/contact"
-              className={`font-medium transition-colors ${
-                pathname === "/contact"
-                  ? "text-primary-600 border-b-2 border-primary-600"
-                  : "text-gray-700 hover:text-primary-600"
-              }`}
-            >
-              Contact
-            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -236,17 +226,6 @@ export default function Header() {
                 }`}
               >
                 About
-              </Link>
-              <Link
-                href="/contact"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`font-medium transition-colors px-4 py-2 rounded-lg ${
-                  pathname === "/contact"
-                    ? "text-primary-600 bg-primary-50"
-                    : "text-gray-700 hover:text-primary-600 hover:bg-gray-50"
-                }`}
-              >
-                Contact
               </Link>
             </div>
           </div>
