@@ -84,14 +84,18 @@ export default function PlayersPage() {
 
     // Calculate stats for each player
     const playersWithStats = playersData.map((player) => {
-      const playerStats = seasonStats?.filter((s) => s.player_id === player.id) || [];
-      
+      const playerStats =
+        seasonStats?.filter((s) => s.player_id === player.id) || [];
+
       return {
         ...player,
         seasonStats: {
           matches: playerStats.length,
           runs: playerStats.reduce((sum, s) => sum + (s.runs || 0), 0),
-          ballsPlayed: playerStats.reduce((sum, s) => sum + (s.balls_played || 0), 0),
+          ballsPlayed: playerStats.reduce(
+            (sum, s) => sum + (s.balls_played || 0),
+            0
+          ),
           fifties: playerStats.filter((s) => s.is_fifty).length,
           hundreds: playerStats.filter((s) => s.is_hundred).length,
           notOuts: playerStats.filter((s) => s.not_out).length,
@@ -99,7 +103,10 @@ export default function PlayersPage() {
           fiveWickets: playerStats.filter((s) => s.is_five_wicket).length,
           tenWickets: playerStats.filter((s) => s.is_ten_wicket).length,
           catches: playerStats.reduce((sum, s) => sum + (s.catches || 0), 0),
-          stumpings: playerStats.reduce((sum, s) => sum + (s.stumpings || 0), 0),
+          stumpings: playerStats.reduce(
+            (sum, s) => sum + (s.stumpings || 0),
+            0
+          ),
           runouts: playerStats.reduce((sum, s) => sum + (s.runouts || 0), 0),
         },
       };
@@ -187,11 +194,13 @@ export default function PlayersPage() {
               >
                 {role === "all"
                   ? "All Players"
-                  : role
-                      .split("-")
-                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-                      .join(" ")}
-                s
+                  : role === "batsman"
+                  ? "Batsmen"
+                  : role === "bowler"
+                  ? "Bowlers"
+                  : role === "all-rounder"
+                  ? "All Rounders"
+                  : "Wicket Keepers"}
               </button>
             )
           )}
@@ -284,9 +293,7 @@ function PlayerCard({
   }
 
   return (
-    <div 
-      className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
-    >
+    <div className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
       {/* Jersey Number Badge */}
       {player.jersey_number && (
         <div className="absolute top-4 right-4 z-10 bg-gradient-to-br from-primary-600 to-primary-700 text-white w-14 h-14 rounded-full flex items-center justify-center font-bold text-xl shadow-lg">
@@ -436,7 +443,7 @@ function PlayerCard({
 
       {/* Player Info */}
       <div className="p-6">
-        <h3 
+        <h3
           className="text-xl font-bold mb-1 text-gray-900 cursor-pointer hover:text-primary-600 transition-colors"
           onClick={(e) => {
             e.stopPropagation();
@@ -455,18 +462,24 @@ function PlayerCard({
             <div className="grid grid-cols-3 gap-2 text-sm">
               <div className="bg-gray-50 rounded-lg p-2 text-center">
                 <div className="text-gray-500 text-xs">Matches</div>
-                <div className="font-bold text-lg">{player.seasonStats.matches}</div>
+                <div className="font-bold text-lg">
+                  {player.seasonStats.matches}
+                </div>
               </div>
               <div className="bg-gray-50 rounded-lg p-2 text-center">
                 <div className="text-gray-500 text-xs">Runs</div>
-                <div className="font-bold text-lg">{player.seasonStats.runs}</div>
+                <div className="font-bold text-lg">
+                  {player.seasonStats.runs}
+                </div>
               </div>
               <div className="bg-gray-50 rounded-lg p-2 text-center">
                 <div className="text-gray-500 text-xs">Wkts</div>
-                <div className="font-bold text-lg">{player.seasonStats.wickets}</div>
+                <div className="font-bold text-lg">
+                  {player.seasonStats.wickets}
+                </div>
               </div>
             </div>
-            <button 
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 onClick();
@@ -930,27 +943,53 @@ function AddPlayerModal({
   );
 }
 
-function PlayerStatsPopup({ player, onClose }: { player: Player; onClose: () => void }) {
+function PlayerStatsPopup({
+  player,
+  onClose,
+}: {
+  player: Player;
+  onClose: () => void;
+}) {
   const stats = player.seasonStats;
 
   if (!stats) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-6 rounded-t-2xl">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-1">{player.name}</h2>
-              <p className="text-primary-100 capitalize">{player.role.replace('-', ' ')}</p>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-1">
+                {player.name}
+              </h2>
+              <p className="text-primary-100 capitalize">
+                {player.role.replace("-", " ")}
+              </p>
             </div>
             <button
               onClick={onClose}
               className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -1012,13 +1051,35 @@ function PlayerStatsPopup({ player, onClose }: { player: Player; onClose: () => 
   );
 }
 
-function StatCard({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+function StatCard({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  highlight?: boolean;
+}) {
   return (
-    <div className={`rounded-xl p-4 ${highlight ? 'bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-200' : 'bg-gray-50'}`}>
-      <div className={`text-xs font-medium mb-1 ${highlight ? 'text-primary-700' : 'text-gray-600'}`}>
+    <div
+      className={`rounded-xl p-4 ${
+        highlight
+          ? "bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-200"
+          : "bg-gray-50"
+      }`}
+    >
+      <div
+        className={`text-xs font-medium mb-1 ${
+          highlight ? "text-primary-700" : "text-gray-600"
+        }`}
+      >
         {label}
       </div>
-      <div className={`text-2xl font-bold ${highlight ? 'text-primary-700' : 'text-gray-900'}`}>
+      <div
+        className={`text-2xl font-bold ${
+          highlight ? "text-primary-700" : "text-gray-900"
+        }`}
+      >
         {value}
       </div>
     </div>

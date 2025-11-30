@@ -1178,6 +1178,7 @@ function SeasonManagementModal({
   onUpdate: () => void;
 }) {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingSeason, setEditingSeason] = useState<Season | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     start_date: "",
@@ -1227,6 +1228,56 @@ function SeasonManagementModal({
       alert("Error adding season: " + error.message);
       console.error("Season add error:", error);
     }
+  }
+
+  async function handleEditSeason(e: React.FormEvent) {
+    e.preventDefault();
+    if (!supabase || !editingSeason) return;
+
+    setLoading(true);
+
+    // If setting as current, unset all other current seasons
+    if (formData.is_current) {
+      await supabase
+        .from("seasons")
+        .update({ is_current: false })
+        .eq("is_current", true);
+    }
+
+    const { error } = await supabase
+      .from("seasons")
+      .update({
+        name: formData.name,
+        start_date: formData.start_date,
+        end_date: formData.end_date || null,
+        is_current: formData.is_current,
+      })
+      .eq("id", editingSeason.id);
+
+    setLoading(false);
+
+    if (!error) {
+      setEditingSeason(null);
+      setFormData({
+        name: "",
+        start_date: "",
+        end_date: "",
+        is_current: false,
+      });
+      onUpdate();
+    } else {
+      alert("Error updating season: " + error.message);
+    }
+  }
+
+  function openEditModal(season: Season) {
+    setEditingSeason(season);
+    setFormData({
+      name: season.name,
+      start_date: season.start_date,
+      end_date: season.end_date || "",
+      is_current: season.is_current,
+    });
   }
 
   async function handleSetCurrent(seasonId: string) {
@@ -1460,6 +1511,25 @@ function SeasonManagementModal({
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => openEditModal(season)}
+                      className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                      title="Edit season"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                    </button>
                     {!season.is_current && (
                       <button
                         onClick={() => handleSetCurrent(season.id)}
@@ -1471,6 +1541,7 @@ function SeasonManagementModal({
                     <button
                       onClick={() => showDeleteConfirm(season.id, season.name)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete season"
                     >
                       <svg
                         className="w-5 h-5"
@@ -1492,6 +1563,142 @@ function SeasonManagementModal({
             )}
           </div>
         </div>
+
+        {/* Edit Season Modal */}
+        {editingSeason && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+                <h2 className="text-2xl font-bold">Edit Season</h2>
+                <button
+                  onClick={() => {
+                    setEditingSeason(null);
+                    setFormData({
+                      name: "",
+                      start_date: "",
+                      end_date: "",
+                      is_current: false,
+                    });
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleEditSeason} className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Season Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="2025-26"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="edit_is_current"
+                    checked={formData.is_current}
+                    onChange={(e) =>
+                      setFormData({ ...formData, is_current: e.target.checked })
+                    }
+                    className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
+                  />
+                  <label
+                    htmlFor="edit_is_current"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Set as current season (ongoing)
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Date *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={formData.start_date}
+                      onChange={(e) =>
+                        setFormData({ ...formData, start_date: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Date {!formData.is_current && "*"}
+                      {formData.is_current && (
+                        <span className="text-gray-500 font-normal">
+                          {" "}
+                          (optional)
+                        </span>
+                      )}
+                    </label>
+                    <input
+                      type="date"
+                      required={!formData.is_current}
+                      value={formData.end_date}
+                      onChange={(e) =>
+                        setFormData({ ...formData, end_date: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100"
+                      disabled={formData.is_current}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingSeason(null);
+                      setFormData({
+                        name: "",
+                        start_date: "",
+                        end_date: "",
+                        is_current: false,
+                      });
+                    }}
+                    className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-medium hover:from-primary-700 hover:to-primary-800 transition-all disabled:opacity-50"
+                  >
+                    {loading ? "Updating..." : "Update Season"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Delete Confirmation Popup */}
         {deleteConfirm.show && (

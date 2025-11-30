@@ -127,10 +127,13 @@ export async function getPlayerBySlug(slug: string) {
 export async function getUpcomingMatches() {
   if (!supabase) return [];
 
+  // Get current date/time to filter out past matches
+  const now = new Date().toISOString();
+
   const { data, error } = await supabase
     .from("matches")
     .select("*")
-    .gte("match_date", new Date().toISOString())
+    .gte("match_date", now)
     .order("match_date", { ascending: true });
 
   if (error) {
@@ -153,10 +156,13 @@ export async function getNextMatch() {
     };
   }
 
+  // Get current date/time to filter out past matches
+  const now = new Date().toISOString();
+
   const { data, error } = await supabase
     .from("matches")
     .select("*")
-    .gte("match_date", new Date().toISOString())
+    .gte("match_date", now)
     .order("match_date", { ascending: true })
     .limit(1)
     .single();

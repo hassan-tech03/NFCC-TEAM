@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase.client'
 import { isAdmin } from '@/lib/supabase.auth'
 
@@ -33,9 +34,13 @@ export default function MatchesPage() {
       return
     }
 
+    // Get current date/time to filter out past matches
+    const now = new Date().toISOString()
+
     const { data, error } = await supabase
       .from('matches')
       .select('*')
+      .gte('match_date', now) // Only get matches with date >= now
       .order('match_date', { ascending: true })
 
     if (!error && data) {
@@ -82,12 +87,33 @@ export default function MatchesPage() {
         )}
 
         {matches.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">📅</div>
-            <h2 className="text-2xl font-semibold text-gray-600 mb-2">No Upcoming Matches</h2>
-            <p className="text-gray-500">
-              {isAdminUser ? 'Click "Add Match" to schedule a match!' : 'Check back soon for upcoming matches.'}
+          <div className="text-center py-20 px-4">
+            <div className="text-6xl sm:text-7xl mb-6">🏏</div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">No Upcoming Matches Yet</h2>
+            <p className="text-base sm:text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+              {isAdminUser 
+                ? 'Click "Add Match" to schedule a match!' 
+                : 'We don\'t have any matches scheduled at the moment. Stay tuned for updates!'}
             </p>
+            {!isAdminUser && (
+              <div className="space-y-4">
+                <p className="text-gray-700 font-medium">
+                  Want to see how we've been performing?
+                </p>
+                <Link
+                  href="/previous-matches"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  View Previous Matches
+                </Link>
+                <p className="text-sm text-gray-500 mt-4">
+                  Follow us on social media to stay updated with match announcements!
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

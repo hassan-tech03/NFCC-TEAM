@@ -38,6 +38,7 @@ export default function PreviousMatchesPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterResult, setFilterResult] = useState<string>("all");
   const [filterSeason, setFilterSeason] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
 
   useEffect(() => {
     loadMatches();
@@ -80,11 +81,18 @@ export default function PreviousMatchesPage() {
     setIsAdminUser(admin);
   }
 
-  const filteredMatches = matches.filter((m) => {
-    const resultMatch = filterResult === "all" || m.result === filterResult;
-    const seasonMatch = filterSeason === "all" || m.season_id === filterSeason;
-    return resultMatch && seasonMatch;
-  });
+  const filteredMatches = matches
+    .filter((m) => {
+      const resultMatch = filterResult === "all" || m.result === filterResult;
+      const seasonMatch =
+        filterSeason === "all" || m.season_id === filterSeason;
+      return resultMatch && seasonMatch;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.match_date).getTime();
+      const dateB = new Date(b.match_date).getTime();
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
 
   if (loading) {
     return (
@@ -148,8 +156,8 @@ export default function PreviousMatchesPage() {
           ))}
         </div>
 
-        {seasons.length > 0 && (
-          <div className="mb-8 flex justify-center">
+        <div className="mb-8 flex flex-wrap justify-center gap-4">
+          {seasons.length > 0 && (
             <div className="inline-flex items-center gap-3 bg-white rounded-full shadow-lg px-6 py-3">
               <svg
                 className="w-5 h-5 text-primary-600"
@@ -177,8 +185,35 @@ export default function PreviousMatchesPage() {
                 ))}
               </select>
             </div>
+          )}
+
+          {/* Sort Dropdown */}
+          <div className="inline-flex items-center gap-3 bg-white rounded-full shadow-lg px-6 py-3">
+            <svg
+              className="w-5 h-5 text-primary-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+              />
+            </svg>
+            <select
+              value={sortOrder}
+              onChange={(e) =>
+                setSortOrder(e.target.value as "newest" | "oldest")
+              }
+              className="bg-transparent border-none outline-none font-medium text-gray-700 cursor-pointer"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
           </div>
-        )}
+        </div>
 
         {filteredMatches.length === 0 ? (
           <div className="text-center py-20">
@@ -404,11 +439,15 @@ function MatchCard({
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
           <div className="flex justify-between items-center mb-2 gap-3">
             <span className="font-medium whitespace-nowrap">Our Score:</span>
-            <span className="text-xl font-bold text-right">{match.our_score}</span>
+            <span className="text-xl font-bold text-right">
+              {match.our_score}
+            </span>
           </div>
           <div className="flex justify-between items-center gap-3">
             <span className="font-medium whitespace-nowrap">Opponent:</span>
-            <span className="text-xl font-bold text-right">{match.opponent_score}</span>
+            <span className="text-xl font-bold text-right">
+              {match.opponent_score}
+            </span>
           </div>
         </div>
       </div>
